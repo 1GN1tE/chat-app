@@ -1,24 +1,24 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++11 -g
+CXXFLAGS = -std=c++20 -g
 
 # Directories
 BUILD_DIR = build
 
 # Source files
-SRC = main.cpp client.cpp chat.cpp display.cpp commands.cpp response.cpp
+SRC = main.cpp client.cpp commands.cpp response.cpp helper.cpp
 # Object files
 OBJ = $(patsubst %.cpp, $(BUILD_DIR)/%.o, $(SRC)) $(BUILD_DIR)/message.o
 
 # Header files
-HEADER = client.hpp chat.hpp display.hpp
+HEADER = client.hpp helper.hpp
 
 # Output binary
 TARGET = client
 
 # Build the binary
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OBJ) -o $(TARGET)
 
 # Compile .cpp files into .o object files in the build directory
 $(BUILD_DIR)/%.o: %.cpp $(HEADER) | $(BUILD_DIR)

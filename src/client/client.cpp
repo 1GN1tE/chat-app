@@ -94,11 +94,17 @@ void Client::sendMessageLoop()
         // Check if the first character is '!', then call handleCommand
         if (!data.empty() && data[0] == '!')
         {
-            handleCommand(data);
-            continue;
+            Message *msg = handleCommand(data);
+            if (msg != NULL)
+            {
+                Client::sendMessage(*msg);
+                delete msg;
+            }
         }
-
-        std::cerr << "Not a command" << std::endl;
+        else
+        {
+            std::cerr << "Not a command" << std::endl;
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 #include "client.hpp"
 
-void Client::handleCommand(const std::string &data)
+Message *Client::handleCommand(const std::string &data)
 {
     // Remove the leading "!" from the command string
     std::string command = data.substr(1);
@@ -17,13 +17,13 @@ void Client::handleCommand(const std::string &data)
     if (tokens.empty())
     {
         std::cerr << "Empty command received" << std::endl;
-        return;
+        return NULL;
     }
 
     // First token is the command
     std::string cmd = tokens[0];
-    Message request;
-    request.setType(0x01); // Default type for all messages
+    Message* request = new Message();
+    request->setType(0x01); // Default type for all messages
 
     if (cmd == "msg")
     {
@@ -34,19 +34,19 @@ void Client::handleCommand(const std::string &data)
 
             if (recipient[0] == '#')
             {
-                request.setCommand(0x30); // channels
+                request->setCommand(0x30); // channels
             }
             else
             {
-                request.setCommand(0x31); // individuals
+                request->setCommand(0x31); // individuals
             }
-            request.addArg(recipient); // Add recipient
-            request.addArg(message);   // Add message text
+            request->addArg(recipient); // Add recipient
+            request->addArg(message);   // Add message text
         }
         else
         {
             std::cerr << "Invalid command format for !msg" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "login")
@@ -57,14 +57,14 @@ void Client::handleCommand(const std::string &data)
             std::string username = tokens[1];
             this->tmp = username;
             std::string password = tokens[2];
-            request.setCommand(0x10); // Login command
-            request.addArg(username); // Add username
-            request.addArg(password); // Add password
+            request->setCommand(0x10); // Login command
+            request->addArg(username); // Add username
+            request->addArg(password); // Add password
         }
         else
         {
             std::cerr << "Invalid command format for !login" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "setpass")
@@ -73,13 +73,13 @@ void Client::handleCommand(const std::string &data)
         if (tokens.size() >= 2)
         {
             std::string newPassword = tokens[1];
-            request.setCommand(0x11);    // Set password command
-            request.addArg(newPassword); // Add new password
+            request->setCommand(0x11);    // Set password command
+            request->addArg(newPassword); // Add new password
         }
         else
         {
             std::cerr << "Invalid command format for !setpass" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "nick")
@@ -88,24 +88,24 @@ void Client::handleCommand(const std::string &data)
         if (tokens.size() >= 2)
         {
             std::string nickname = tokens[1];
-            request.setCommand(0x12); // Nickname command
-            request.addArg(nickname); // Add nickname
+            request->setCommand(0x12); // Nickname command
+            request->addArg(nickname); // Add nickname
         }
         else
         {
             std::cerr << "Invalid command format for !nick" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "listc")
     {
         // No arguments for listchannels
-        request.setCommand(0x20); // List channels command
+        request->setCommand(0x20); // List channels command
     }
     else if (cmd == "listu")
     {
         // No arguments for listusers
-        request.setCommand(0x21); // List users command
+        request->setCommand(0x21); // List users command
     }
     else if (cmd == "getMsgU")
     {
@@ -121,16 +121,16 @@ void Client::handleCommand(const std::string &data)
             catch (const std::invalid_argument &e)
             {
                 std::cerr << "Invalid page number: " << tokens[1] << std::endl;
-                return;
+                return NULL;
             }
             catch (const std::out_of_range &e)
             {
                 std::cerr << "Page number out of range: " << tokens[1] << std::endl;
-                return;
+                return NULL;
             }
 
-            request.setCommand(0x22);             // Get user messages
-            request.addArg(std::to_string(page)); // Add page number
+            request->setCommand(0x22);             // Get user messages
+            request->addArg(std::to_string(page)); // Add page number
         }
         // Expect two arguments: username (string) and page (integer)
         else if (tokens.size() == 3) // tokens[1] is username, tokens[2] is page
@@ -144,22 +144,22 @@ void Client::handleCommand(const std::string &data)
             catch (const std::invalid_argument &e)
             {
                 std::cerr << "Invalid page number: " << tokens[1] << std::endl;
-                return;
+                return NULL;
             }
             catch (const std::out_of_range &e)
             {
                 std::cerr << "Page number out of range: " << tokens[1] << std::endl;
-                return;
+                return NULL;
             }
 
-            request.setCommand(0x22);             // Get user messages
-            request.addArg(username);             // Add username name
-            request.addArg(std::to_string(page)); // Add page number
+            request->setCommand(0x22);             // Get user messages
+            request->addArg(username);             // Add username name
+            request->addArg(std::to_string(page)); // Add page number
         }
         else
         {
             std::cerr << "Invalid command format for !getMsgU. Expected: !getMsgU <username> <page>" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "getMsgC")
@@ -177,22 +177,22 @@ void Client::handleCommand(const std::string &data)
             catch (const std::invalid_argument &e)
             {
                 std::cerr << "Invalid page number: " << tokens[2] << std::endl;
-                return;
+                return NULL;
             }
             catch (const std::out_of_range &e)
             {
                 std::cerr << "Page number out of range: " << tokens[2] << std::endl;
-                return;
+                return NULL;
             }
 
-            request.setCommand(0x23);             // Get channel messages
-            request.addArg(channel);              // Add channel name
-            request.addArg(std::to_string(page)); // Add page number
+            request->setCommand(0x23);             // Get channel messages
+            request->addArg(channel);              // Add channel name
+            request->addArg(std::to_string(page)); // Add page number
         }
         else
         {
             std::cerr << "Invalid command format for !getMsgC. Expected: !getMsgC <channel> <page>" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "join")
@@ -201,28 +201,13 @@ void Client::handleCommand(const std::string &data)
         if (tokens.size() >= 2)
         {
             std::string channel = tokens[1];
-            request.setCommand(0x40); // Join channel command
-            request.addArg(channel);  // Add channel name
+            request->setCommand(0x40); // Join channel command
+            request->addArg(channel);  // Add channel name
         }
         else
         {
             std::cerr << "Invalid command format for !join" << std::endl;
-            return;
-        }
-    }
-    else if (cmd == "change")
-    {
-        // Expect one argument: channel name
-        if (tokens.size() >= 2)
-        {
-            std::string channel = tokens[1];
-            request.setCommand(0x41); // Change channel command
-            request.addArg(channel);  // channel name
-        }
-        else
-        {
-            std::cerr << "Invalid command format for !createchannel" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "create")
@@ -231,13 +216,13 @@ void Client::handleCommand(const std::string &data)
         if (tokens.size() >= 2)
         {
             std::string channel = tokens[1];
-            request.setCommand(0x42); // Create channel command
-            request.addArg(channel);  // Add channel name
+            request->setCommand(0x42); // Create channel command
+            request->addArg(channel);  // Add channel name
         }
         else
         {
             std::cerr << "Invalid command format for !createchannel" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "desc")
@@ -247,14 +232,14 @@ void Client::handleCommand(const std::string &data)
         {
             std::string channel = tokens[1];
             std::string description = data.substr(data.find(channel) + channel.length() + 1); // The description after the channel
-            request.setCommand(0x43);                                                         // Set channel description command
-            request.addArg(channel);                                                          // Add channel name
-            request.addArg(description);                                                      // Add description
+            request->setCommand(0x43);                                                         // Set channel description command
+            request->addArg(channel);                                                          // Add channel name
+            request->addArg(description);                                                      // Add description
         }
         else
         {
             std::cerr << "Invalid command format for !desc" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "setkey")
@@ -264,14 +249,14 @@ void Client::handleCommand(const std::string &data)
         {
             std::string channel = tokens[1];
             std::string key = data.substr(data.find(channel) + channel.length() + 1); // The key after the channel
-            request.setCommand(0x44);                                                 // Set channel key command
-            request.addArg(channel);                                                  // Add channel name
-            request.addArg(key);                                                      // Add key
+            request->setCommand(0x44);                                                 // Set channel key command
+            request->addArg(channel);                                                  // Add channel name
+            request->addArg(key);                                                      // Add key
         }
         else
         {
             std::cerr << "Invalid command format for !setkey" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "kick")
@@ -281,14 +266,14 @@ void Client::handleCommand(const std::string &data)
         {
             std::string channel = tokens[1];
             std::string user = tokens[2];
-            request.setCommand(0x50); // Kick user from channel
-            request.addArg(channel);  // Add channel name
-            request.addArg(user);     // Add username
+            request->setCommand(0x50); // Kick user from channel
+            request->addArg(channel);  // Add channel name
+            request->addArg(user);     // Add username
         }
         else
         {
             std::cerr << "Invalid command format for !kick" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "ban")
@@ -298,14 +283,14 @@ void Client::handleCommand(const std::string &data)
         {
             std::string channel = tokens[1];
             std::string user = tokens[2];
-            request.setCommand(0x51); // Ban user from channel
-            request.addArg(channel);  // Add channel name
-            request.addArg(user);     // Add username
+            request->setCommand(0x51); // Ban user from channel
+            request->addArg(channel);  // Add channel name
+            request->addArg(user);     // Add username
         }
         else
         {
             std::cerr << "Invalid command format for !ban" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "ul")
@@ -319,7 +304,7 @@ void Client::handleCommand(const std::string &data)
             if (!std::filesystem::exists(filename))
             {
                 std::cerr << "File does not exist: " << filename << std::endl;
-                return;
+                return NULL;
             }
 
             // Open the file for reading
@@ -327,7 +312,7 @@ void Client::handleCommand(const std::string &data)
             if (!file)
             {
                 std::cerr << "Failed to open file: " << filename << std::endl;
-                return;
+                return NULL;
             }
 
             // Read the first 512 bytes from the file
@@ -339,7 +324,7 @@ void Client::handleCommand(const std::string &data)
             if (bytesRead == 0)
             {
                 std::cerr << "Failed to read from file or file is empty: " << filename << std::endl;
-                return;
+                return NULL;
             }
 
             // Check for null bytes in the data
@@ -348,25 +333,25 @@ void Client::handleCommand(const std::string &data)
             if (containsNullByte)
             {
                 std::cerr << "Invalid file: contains null byte(s)" << std::endl;
-                return;
+                return NULL;
             }
 
             // Set the command for the request
-            request.setCommand(0x60);
+            request->setCommand(0x60);
 
             // Add the recipient (user/channel) and filename
-            request.addArg(recipient);
-            request.addArg(filename);
+            request->addArg(recipient);
+            request->addArg(filename);
 
             // Add the read data (up to 512 bytes)
-            request.addArg(std::string(buffer.begin(), buffer.begin() + bytesRead));
+            request->addArg(std::string(buffer.begin(), buffer.begin() + bytesRead));
 
             std::cout << "File data sent successfully." << std::endl;
         }
         else
         {
             std::cerr << "Invalid command format for !send" << std::endl;
-            return;
+            return NULL;
         }
     }
     else if (cmd == "dl")
@@ -377,23 +362,23 @@ void Client::handleCommand(const std::string &data)
             std::string uid = tokens[2];  // The third token is the uuid
 
             // Set the command for the request
-            request.setCommand(0x61);
+            request->setCommand(0x61);
 
             // Add the (user/channel) and uid
-            request.addArg(from);
-            request.addArg(uid);
+            request->addArg(from);
+            request->addArg(uid);
         }
         else
         {
             std::cerr << "Invalid command format for !send" << std::endl;
-            return;
+            return NULL;
         }
     }
     else
     {
         std::cerr << "Unknown command: " << data << std::endl;
-        return;
+        return NULL;
     }
 
-    Client::sendMessage(request);
+    return request;
 }

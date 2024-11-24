@@ -40,7 +40,7 @@ private:
     void sendMessageLoop();
 
     void sendMessage(Message &msg);
-    void handleCommand(const std::string &data);
+    Message *handleCommand(const std::string &data);
 
     void handleResponse(Message &response);
 
