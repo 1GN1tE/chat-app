@@ -1,0 +1,16 @@
+# Server files
+src/server/.vscode
+src/server/build
+src/server/files
+src/server/server
+
+# Client Files
+src/client/.vscode
+src/client/build
+src/client/client
+
+# Protocol
+src/protocol/.vscode
+
+# Experiments
+experiments
